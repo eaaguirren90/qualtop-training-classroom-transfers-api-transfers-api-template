@@ -27,6 +27,10 @@ type TransfersHandler struct {
 	transfersSvc TransfersService
 }
 
+type TransfersPublisher interface {
+	Publish(operation string, transferID string) error
+}
+
 func NewTransfersHandler(transfersSvc TransfersService) *TransfersHandler {
 	return &TransfersHandler{
 		transfersSvc: transfersSvc,
