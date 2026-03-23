@@ -22,14 +22,16 @@ type TransfersRepository interface {
 }
 
 type TransfersService struct {
-	businessCfg   config.BusinessConfig
-	transfersRepo TransfersRepository
+	businessCfg    config.BusinessConfig
+	transfersRepo  TransfersRepository
+	transfersCache TransfersRepository
 }
 
-func NewTransfersService(businessCfg config.BusinessConfig, transfersRepo TransfersRepository) *TransfersService {
+func NewTransfersService(businessCfg config.BusinessConfig, transfersRepo TransfersRepository, transfersCache TransfersRepository) *TransfersService {
 	return &TransfersService{
-		businessCfg:   businessCfg,
-		transfersRepo: transfersRepo,
+		businessCfg:    businessCfg,
+		transfersRepo:  transfersRepo,
+		transfersCache: transfersCache,
 	}
 }
 
@@ -54,12 +56,23 @@ func (s *TransfersService) Create(ctx context.Context, transfer models.Transfer)
 	if err != nil {
 		return "", fmt.Errorf("error creating transfer in repository: %w", err)
 	}
+	if _, err := s.transfersCache.Create(ctx, transfer); err != nil {
+		logging.Logger.Errorf("error caching transfer with ID %s: %v", id, err)
+	}
 	logging.Logger.Infof("created transfer with ID %s", id)
 	return id, nil
 }
 
 func (s *TransfersService) GetByID(ctx context.Context, id string) (models.Transfer, error) {
+	cachedTransfer, err := s.transfersCache.GetByID(ctx, id)
+
+	if err == nil {
+		logging.Logger.Infof("cache hit for transfer with ID %s", id)
+		return cachedTransfer, nil
+	}
+
 	transfer, err := s.transfersRepo.GetByID(ctx, id)
+
 	if err != nil {
 		return models.Transfer{}, fmt.Errorf("error getting transfer %s from repository: %w", id, err)
 	}
