@@ -2,14 +2,17 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/caarlos0/env/v10"
 	"time"
 	"transfers-api/internal/logging"
+
+	"github.com/caarlos0/env/v10"
 )
 
 type Config struct {
-	Business      BusinessConfig `json:"business"`
-	MongoDBConfig MongoDB        `json:"mongodb"`
+	Business        BusinessConfig `json:"business"`
+	MongoDBConfig   MongoDB        `json:"mongodb"`
+	MYSQLDBConfig   MySQLDB        `json:"mysql"`
+	MemcachedConfig Memcached
 }
 
 type BusinessConfig struct {
@@ -26,11 +29,27 @@ type MongoDB struct {
 	Collection     string        `env:"MONGODB_COLLECTION" envDefault:"transfers" json:"collection"`
 }
 
+type MySQLDB struct {
+	Hostname string `env:"MYSQL_HOSTNAME" envDefault:"mysql" json:"hostname"`
+	Port     int    `env:"MYSQL_PORT" envDefault:"3306" json:"port"`
+	Username string `env:"MYSQL_USERNAME" envDefault:"root" json:"username"`
+	Password string `env:"MYSQL_PASSWORD" envDefault:"root" json:"password"`
+	Database string `env:"MYSQL_DATABASE" envDefault:"transfers_db" json:"database"`
+}
+
+type Memcached struct {
+	Hostname   string `env:"MEMCACHED_HOSTNAME" envDefault:"memcached" json:"hostname"`
+	Port       int    `env:"MEMCACHED_PORT" envDefault:"11211" json:"port"`
+	TTLSeconds int    `env:"MEMCACHED_TTL_SECONDS" envDefault:"60" json:"ttl_seconds"`
+}
+
 func ParseFromEnv() *Config {
 	var cfg Config
 	for _, nested := range []interface{}{
 		&cfg.Business,
 		&cfg.MongoDBConfig,
+		&cfg.MYSQLDBConfig,
+		&cfg.MemcachedConfig,
 	} {
 		if err := env.Parse(nested); err != nil {
 			logging.Logger.Fatalf("error parsing config: %v", err)
