@@ -3,9 +3,11 @@ module transfers-api
 go 1.25.7
 
 require (
+	github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf
 	github.com/caarlos0/env/v10 v10.0.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-sql-driver/mysql v1.9.3
+	github.com/karlseguin/ccache/v3 v3.0.8
 	go.mongodb.org/mongo-driver v1.17.9
 	go.uber.org/zap v1.27.1
 )
