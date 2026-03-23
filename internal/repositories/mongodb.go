@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"transfers-api/internal/config"
 	"transfers-api/internal/enums"
 	"transfers-api/internal/known_errors"
 	"transfers-api/internal/logging"
 	"transfers-api/internal/models"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type TransfersMongoDBRepo struct {
@@ -87,6 +88,44 @@ func (r *TransfersMongoDBRepo) GetByID(ctx context.Context, id string) (models.T
 		Amount:     transfer.Amount,
 		State:      transfer.State, // TODO: replace with enums.ParseState
 	}, nil
+}
+
+func (r *TransfersMongoDBRepo) GetBySenderID(ctx context.Context, senderID string) ([]models.Transfer, error) {
+
+	cursor, err := r.collection.Find(ctx, bson.M{"sender_id": senderID})
+	if err != nil {
+		return nil, fmt.Errorf("error finding transfers by sender_id %s: %w", senderID, err)
+	}
+	defer cursor.Close(ctx)
+
+	var transfers []models.Transfer
+
+	for cursor.Next(ctx) {
+		var transferDAO transferMongoDAO
+
+		if err := cursor.Decode(&transferDAO); err != nil {
+			return nil, fmt.Errorf("error decoding transfer: %w", err)
+		}
+
+		transfers = append(transfers, models.Transfer{
+			ID:         transferDAO.ID.Hex(),
+			SenderID:   transferDAO.SenderID,
+			ReceiverID: transferDAO.ReceiverID,
+			Currency:   enums.ParseCurrency(transferDAO.Currency),
+			Amount:     transferDAO.Amount,
+			State:      transferDAO.State, // TODO: replace with enums.ParseState
+		})
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	if len(transfers) == 0 {
+		return nil, fmt.Errorf("no transfers found for sender_id %s: %w", senderID, known_errors.ErrNotFound)
+	}
+
+	return transfers, nil
 }
 
 func (r *TransfersMongoDBRepo) Update(ctx context.Context, transfer models.Transfer) error {

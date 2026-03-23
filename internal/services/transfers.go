@@ -16,6 +16,7 @@ import (
 type TransfersRepository interface {
 	Create(ctx context.Context, transfer models.Transfer) (string, error)
 	GetByID(ctx context.Context, id string) (models.Transfer, error)
+	GetBySenderID(ctx context.Context, id string) ([]models.Transfer, error)
 	Update(ctx context.Context, transfer models.Transfer) error
 	Delete(ctx context.Context, id string) error
 }
@@ -64,6 +65,15 @@ func (s *TransfersService) GetByID(ctx context.Context, id string) (models.Trans
 	}
 	logging.Logger.Infof("retrieved transfer with ID %s", id)
 	return transfer, nil
+}
+
+func (s *TransfersService) GetBySenderID(ctx context.Context, id string) ([]models.Transfer, error) {
+	transfers, err := s.transfersRepo.GetBySenderID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("error getting transfers for sender %s from repository: %w", id, err)
+	}
+
+	return transfers, nil
 }
 
 func (s *TransfersService) Update(ctx context.Context, transfer models.Transfer) error {
