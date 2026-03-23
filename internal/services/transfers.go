@@ -7,6 +7,7 @@ import (
 	"transfers-api/internal/config"
 	"transfers-api/internal/enums"
 	"transfers-api/internal/known_errors"
+	"transfers-api/internal/logging"
 	"transfers-api/internal/models"
 )
 
@@ -48,9 +49,11 @@ func (s *TransfersService) Create(ctx context.Context, transfer models.Transfer)
 		return "", fmt.Errorf("state is required: %w", known_errors.ErrBadRequest)
 	}
 	id, err := s.transfersRepo.Create(ctx, transfer)
+	transfer.ID = id
 	if err != nil {
 		return "", fmt.Errorf("error creating transfer in repository: %w", err)
 	}
+	logging.Logger.Infof("created transfer with ID %s", id)
 	return id, nil
 }
 
@@ -59,6 +62,7 @@ func (s *TransfersService) GetByID(ctx context.Context, id string) (models.Trans
 	if err != nil {
 		return models.Transfer{}, fmt.Errorf("error getting transfer %s from repository: %w", id, err)
 	}
+	logging.Logger.Infof("retrieved transfer with ID %s", id)
 	return transfer, nil
 }
 
