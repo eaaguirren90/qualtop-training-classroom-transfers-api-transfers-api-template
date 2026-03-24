@@ -39,9 +39,21 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
 
+  consumer:
+    image: transfers-client:0.1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    container_name: transfers-consumer
+    depends_on:
+      - rabbitmq
+    ports:
+      - "8980:8980"
+    restart: always
+      
   app:
     image: transfers-api:0.1.0
     build:
@@ -71,3 +83,6 @@ services:
 volumes:
   mongo_data:
   mysql_data:
+
+
+

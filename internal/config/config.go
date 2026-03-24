@@ -54,8 +54,8 @@ type CCache struct {
 type RabbitMQ struct {
 	Hostname  string `env:"RABBITMQ_HOSTNAME" envDefault:"rabbitmq" json:"hostname"`
 	Port      int    `env:"RABBITMQ_PORT" envDefault:"5672" json:"port"`
-	Username  string `env:"RABBITMQ_USERNAME" envDefault:"guest" json:"username"`
-	Password  string `env:"RABBITMQ_PASSWORD" envDefault:"guest" json:"password"`
+	Username  string `env:"RABBITMQ_USERNAME" envDefault:"admin" json:"username"`
+	Password  string `env:"RABBITMQ_PASSWORD" envDefault:"admin123" json:"password"`
 	QueueName string `env:"RABBITMQ_QUEUE_NAME" envDefault:"transfers-events" json:"queue_name"`
 }
 
